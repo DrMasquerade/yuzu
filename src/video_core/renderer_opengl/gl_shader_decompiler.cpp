@@ -2029,31 +2029,55 @@ private:
             break;
         }
         case OpCode::Type::PredicateSetPredicate: {
-            std::string op_a =
-                GetPredicateCondition(instr.psetp.pred12, instr.psetp.neg_pred12 != 0);
-            std::string op_b =
-                GetPredicateCondition(instr.psetp.pred29, instr.psetp.neg_pred29 != 0);
+            switch (opcode->GetId()) {
+            case OpCode::Id::PSETP: {
+                std::string op_a =
+                    GetPredicateCondition(instr.psetp.pred12, instr.psetp.neg_pred12 != 0);
+                std::string op_b =
+                    GetPredicateCondition(instr.psetp.pred29, instr.psetp.neg_pred29 != 0);
 
-            // We can't use the constant predicate as destination.
-            ASSERT(instr.psetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
+                // We can't use the constant predicate as destination.
+                ASSERT(instr.psetp.pred3 != static_cast<u64>(Pred::UnusedIndex));
 
-            std::string second_pred =
-                GetPredicateCondition(instr.psetp.pred39, instr.psetp.neg_pred39 != 0);
+                std::string second_pred =
+                    GetPredicateCondition(instr.psetp.pred39, instr.psetp.neg_pred39 != 0);
 
-            std::string combiner = GetPredicateCombiner(instr.psetp.op);
+                std::string combiner = GetPredicateCombiner(instr.psetp.op);
 
-            std::string predicate =
-                '(' + op_a + ") " + GetPredicateCombiner(instr.psetp.cond) + " (" + op_b + ')';
+                std::string predicate =
+                    '(' + op_a + ") " + GetPredicateCombiner(instr.psetp.cond) + " (" + op_b + ')';
 
-            // Set the primary predicate to the result of Predicate OP SecondPredicate
-            SetPredicate(instr.psetp.pred3,
-                         '(' + predicate + ") " + combiner + " (" + second_pred + ')');
+                // Set the primary predicate to the result of Predicate OP SecondPredicate
+                SetPredicate(instr.psetp.pred3,
+                             '(' + predicate + ") " + combiner + " (" + second_pred + ')');
 
-            if (instr.psetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
-                // Set the secondary predicate to the result of !Predicate OP SecondPredicate,
-                // if enabled
-                SetPredicate(instr.psetp.pred0,
-                             "!(" + predicate + ") " + combiner + " (" + second_pred + ')');
+                if (instr.psetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
+                    // Set the secondary predicate to the result of !Predicate OP SecondPredicate,
+                    // if enabled
+                    SetPredicate(instr.psetp.pred0,
+                                 "!(" + predicate + ") " + combiner + " (" + second_pred + ')');
+                }
+                break;
+            }
+            case OpCode::Id::CSETP: {
+                std::string pred =
+                    GetPredicateCondition(instr.csetp.pred39, instr.csetp.neg_pred39 != 0);
+                std::string combiner = GetPredicateCombiner(instr.csetp.op);
+                std::string controlCode = regs.GetControlCode(instr.csetp.cc);
+                if (instr.csetp.pred3 != static_cast<u64>(Pred::UnusedIndex)) {
+                    SetPredicate(instr.csetp.pred3,
+                                 '(' + controlCode + ") " + combiner + " (" + pred + ')');
+                }
+                if (instr.csetp.pred0 != static_cast<u64>(Pred::UnusedIndex)) {
+                    SetPredicate(instr.csetp.pred0,
+                                 "!(" + controlCode + ") " + combiner + " (" + pred + ')');
+                }
+                break;
+            }
+            default: {
+                LOG_CRITICAL(HW_GPU, "Unhandled predicate instruction: {}", opcode->GetName());
+                UNREACHABLE();
+            }
             }
             break;
         }
