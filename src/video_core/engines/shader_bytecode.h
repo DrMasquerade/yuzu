@@ -513,6 +513,15 @@ union Instruction {
     } psetp;
 
     union {
+        BitField<0, 3, u64> pred0;
+        BitField<3, 3, u64> pred3;
+        BitField<8, 5, ControlCode> cc; // flag in cc
+        BitField<39, 3, u64> pred39;
+        BitField<42, 1, u64> neg_pred39;
+        BitField<45, 4, PredOperation> op; // op with pred39
+    } csetp;
+
+    union {
         BitField<39, 3, u64> pred39;
         BitField<42, 1, u64> neg_pred;
         BitField<43, 1, u64> neg_a;
@@ -808,6 +817,7 @@ public:
         ISET_C,
         ISET_IMM,
         PSETP,
+        CSETP,
         XMAD_IMM,
         XMAD_CR,
         XMAD_RC,
@@ -1035,6 +1045,7 @@ private:
             INST("010010110101----", Id::ISET_C, Type::IntegerSet, "ISET_C"),
             INST("0011011-0101----", Id::ISET_IMM, Type::IntegerSet, "ISET_IMM"),
             INST("0101000010010---", Id::PSETP, Type::PredicateSetPredicate, "PSETP"),
+            INST("010100001010----", Id::PSETP, Type::PredicateSetPredicate, "CSETP"),
             INST("0011011-00------", Id::XMAD_IMM, Type::Xmad, "XMAD_IMM"),
             INST("0100111---------", Id::XMAD_CR, Type::Xmad, "XMAD_CR"),
             INST("010100010-------", Id::XMAD_RC, Type::Xmad, "XMAD_RC"),
