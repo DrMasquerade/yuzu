@@ -254,6 +254,7 @@ enum class TextureQueryType : u64 {
     BorderColor = 22,
 };
 
+enum class TextureProcessMode : u64 { None = 0, LZ = 1, LB = 2, LL = 3, LBA = 6, LLA = 7 };
 enum class IpaInterpMode : u64 { Linear = 0, Perspective = 1, Flat = 2, Sc = 3 };
 enum class IpaSampleMode : u64 { Default = 0, Centroid = 1, Offset = 2 };
 
@@ -522,6 +523,7 @@ union Instruction {
         BitField<28, 1, u64> array;
         BitField<29, 2, TextureType> texture_type;
         BitField<31, 4, u64> component_mask;
+        BitField<37, 3, TextureProcessMode> process_mode;
 
         bool IsComponentEnabled(size_t component) const {
             return ((1ull << component) & component_mask) != 0;
